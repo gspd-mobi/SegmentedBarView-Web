@@ -2,6 +2,11 @@ var SegmentedBar = (function () {
     var paper = null;
     var segments = [];
     var yStart = 0;
+    var bubbleRendered = false,
+        bubbleX = 500,
+        bubbleY = 0,
+        bubbleLength = 200;
+
 
     var config = {
         emptySegmentText: "No segments",
@@ -12,7 +17,9 @@ var SegmentedBar = (function () {
         showValue: false,
         value: 0,
         segmentHeight: 80,
-        valueHeight: 120
+        valueHeight: 120,
+        bubbleColor: "#7492E2",
+        backgroundColor : "#DBF2B5"
     };
 
     function setViewBox() {
@@ -32,7 +39,7 @@ var SegmentedBar = (function () {
         }
 
         paper.rect(0, 0, '100%', '100%').attr({
-            fill: "#DBF2B5"
+            fill: config.backgroundColor
         });
     }
 
@@ -46,7 +53,6 @@ var SegmentedBar = (function () {
             fontFamily: "Calibri"
         });
         var bbox = text.getBBox();
-        console.log(bbox);
 
         text.attr({
             x: 500 - bbox.width / 2,
@@ -84,6 +90,45 @@ var SegmentedBar = (function () {
             });
     }
 
+    function renderBubbleTriangle(x, y, color){
+        console.log(x, y);
+        return paper.polygon(x, y, x - 10, y - 20, x + 10, y -20)
+            .attr({
+                fill: color
+            });
+    }
+
+    function findBubblePosition() {
+        var value = config.value;
+        for (var i=0; i<segments.length; i++)
+        {
+            var segment = segments[i];
+            if (value == segment.minValue && segment.includeLeft) {
+                bubbleX = segment.startX;
+                break;
+            }
+            if (value == segment.maxValue && segment.includeRight) {
+                bubbleX = segment.endX;
+                break;
+            }
+            if (value > segment.minValue && value < segment.maxValue) {
+                bubbleX = (segment.endX - segment.startX) * (value - segment.minValue) / (segment.maxValue - segment.minValue)  +
+                    segment.startX;
+                console.log("bubbleX = " + bubbleX);
+                break;
+            }
+        }
+    }
+
+    function addBubble() {
+        findBubblePosition();
+        renderBubbleTriangle(bubbleX, bubbleY, config.bubbleColor);
+        renderBubble(bubbleX - bubbleLength / 2 , config.bubbleColor);
+    }
+
+    function renderBubble(x, color) {
+        renderRect(x, bubbleY - 119, bubbleLength, 100, color, 20);
+    }
 
     function renderSegment(x, y, length, segmentConfig, type) {
 
@@ -97,18 +142,23 @@ var SegmentedBar = (function () {
         var color = segmentConfig.color;
 
         if (type == "single") {
-            console.log(height, config.segmentHeight);
             if (config.sideStyle == "angle") {
                 length -= height;
                 renderLeftTriangle(x, y, height, color);
                 x += height / 2;
                 renderRect(x, y, length, height, color);
+                segmentConfig.startX = x;
+                segmentConfig.endX = x + length;
                 x += length;
                 renderRightTriangle(x, y, height, color);
             }
             else if (config.sideStyle == "rounded") {
+                segmentConfig.startX = x + height / 2;
+                segmentConfig.endX = x + length;
                 renderRect(x, y, length, height, color, height / 2);
             } else {
+                segmentConfig.startX = x;
+                segmentConfig.endX = x + length;
                 renderRect(x, y, length, height, color);
             }
         } else {
@@ -134,6 +184,8 @@ var SegmentedBar = (function () {
                     length -= height / 2;
                 }
             }
+            segmentConfig.startX = x;
+            segmentConfig.endX = x + length;
             renderRect(x, y, length, height, color);
         }
     }
@@ -148,12 +200,14 @@ var SegmentedBar = (function () {
 
         if (config.showValue) {
             _y = 200 - config.segmentHeight;
+            bubbleY = _y;
         }
         var xLength;
 
         if (segments.length == 1) {
             xLength = 1000;
             renderSegment(_x, _y, xLength, segments[0], "single");
+           // console.log("startX=" + segments[0].startX);
         } else {
             xLength = (1000 + config.gap) / segments.length - config.gap;
 
@@ -165,6 +219,7 @@ var SegmentedBar = (function () {
                 } else {
                     renderSegment(_x, _y, xLength, segment)
                 }
+              //  console.log("startX=" + segment.startX);
                 _x += xLength + config.gap;
             });
         }
@@ -177,9 +232,12 @@ var SegmentedBar = (function () {
         config.sideStyle = barConfig.sideStyle;
         config.showValue = barConfig.showValue;
         config.segmentHeight = barConfig.segmentHeight || config.segmentHeight;
+        config.value = barConfig.value || config.value;
+        config.backgroundColor = barConfig.backgroundColor || config.backgroundColor;
 
         setViewBox();
         renderSegments();
+        addBubble();
 
         return this;
     }
