@@ -1,8 +1,7 @@
 var SegmentedBar = (function () {
     var paper = null;
     var segments = [];
-    var viewBoxHeight,
-        viewBoxWidth;
+    var yStart = 0;
 
     var config = {
         emptySegmentText: "No segments",
@@ -11,28 +10,30 @@ var SegmentedBar = (function () {
         showDescription: true,
         sideStyle: "angle",
         showValue: false,
-        value: 0
+        value: 0,
+        segmentHeight: 80,
+        valueHeight: 120
     };
 
     function setViewBox() {
         if (paper == null) return;
-        viewBoxWidth = 1000;
         if (config.showValue) {
             paper.attr({
                 viewBox: "0 0 1000 200"
             });
-            viewBoxHeight = 200;
+            yStart = 50;
+
         } else {
             paper.attr({
                 viewBox: "0 0 1000 100"
             });
-            viewBoxHeight = 100;
+            config.segmentHeight = 100;
+            yStart = 0;
         }
 
         paper.rect(0, 0, '100%', '100%').attr({
             fill: "#DBF2B5"
         });
-
     }
 
     function renderEmptyBar() {
@@ -53,6 +54,37 @@ var SegmentedBar = (function () {
         });
     }
 
+    function renderRect(x, y, length, height, color, radius) {
+        return paper.rect(x, y, length, height, radius)
+            .attr({
+                fill: color
+            });
+    }
+
+    function renderLeftTriangle(x, y, size, color) {
+        var sizeHalf = size / 2;
+        return paper.polygon(x, y + sizeHalf, x + sizeHalf, y, x + sizeHalf, y + size)
+            .attr({
+                fill: color
+            });
+    }
+
+    function renderRightTriangle(x, y, size, color) {
+        var sizeHalf = size / 2;
+        return paper.polygon(x, y, x + sizeHalf, y + sizeHalf, x, y + size)
+            .attr({
+                fill: color
+            });
+    }
+
+    function renderCircle(x, y, radius, color) {
+        return paper.circle(x, y, radius)
+            .attr({
+                fill: color
+            });
+    }
+
+
     function renderSegment(x, y, length, segmentConfig, type) {
 
         var segment,
@@ -61,78 +93,48 @@ var SegmentedBar = (function () {
             leftCircle,
             rightCircle;
 
+        var height = config.segmentHeight;
+        var color = segmentConfig.color;
+
         if (type == "single") {
+            console.log(height, config.segmentHeight);
             if (config.sideStyle == "angle") {
-                x = x + 50;
-                length = length - 100;
-                segment = paper.rect(x, viewBoxHeight / 2, length, viewBoxHeight / 2);
-                segment.attr({
-                    fill: segmentConfig.color || '#00F'
-                });
-
-                leftTriangle = paper.polyline(0, 3 * viewBoxHeight / 4, 50, viewBoxHeight/ 2, 50, viewBoxHeight);
-                leftTriangle.attr({
-                    fill: segmentConfig.color || '#00F'
-                });
-
-                rightTriangle = paper.polyline(1000,  3 * viewBoxHeight / 4, 1000 - 50, viewBoxHeight/ 2, 1000 - 50, viewBoxHeight);
-                rightTriangle.attr({
-                    fill: segmentConfig.color || '#00F'
-                });
+                length -= height;
+                renderLeftTriangle(x, y, height, color);
+                x += height / 2;
+                renderRect(x, y, length, height, color);
+                x += length;
+                renderRightTriangle(x, y, height, color);
             }
-            else if (config.sideStyle == "rounded"){
-                var roundedSegment = paper.rect(0, viewBoxHeight / 2, 1000, viewBoxHeight /2, 50);
-                roundedSegment.attr({
-                    fill: segmentConfig.color || '#00F'
-                });
+            else if (config.sideStyle == "rounded") {
+                renderRect(x, y, length, height, color, height / 2);
             } else {
-                var segment = paper.rect(0, viewBoxHeight / 2, 1000, viewBoxHeight /2);
-                segment.attr({
-                    fill: segmentConfig.color || '#00F'
-                });
+                renderRect(x, y, length, height, color);
             }
         } else {
             if (type == "left") {
                 if (config.sideStyle == "angle") {
-                    length -= 50;
-                    leftTriangle = paper.polyline(0, 3 * viewBoxHeight / 4, 50, viewBoxHeight/ 2, 50, viewBoxHeight);
-                    leftTriangle.attr({
-                        fill: segmentConfig.color || '#00F'
-                    });
-                    x += 50;
+                    renderLeftTriangle(x, y, height, color);
+                    length -= height / 2;
+                    x += height / 2;
                 }
-                if (config.sideStyle =="rounded") {
-                    length -= 50;
-                    leftCircle = paper.circle(50, 3 * viewBoxHeight / 4, 50);
-                    leftCircle.attr({
-                        fill: segmentConfig.color || '#00F'
-                    });
-                    x += 50;
+                if (config.sideStyle == "rounded") {
+                    renderCircle(x + height / 2, y + height / 2, height / 2, color);
+                    length -= height / 2;
+                    x += height / 2;
                 }
-
             }
             if (type == "right") {
                 if (config.sideStyle == "angle") {
-                    rightTriangle = paper.polyline(1000,  3 * viewBoxHeight / 4, 1000 - 50, viewBoxHeight/ 2, 1000 - 50, viewBoxHeight);
-                    rightTriangle.attr({
-                        fill: segmentConfig.color || '#00F'
-                    });
-                    length -= 50;
+                    renderRightTriangle(x + length - height / 2, y, height, color);
+                    length -= height / 2;
                 }
                 if (config.sideStyle == "rounded") {
-                    length -= 50;
-                    rightCircle = paper.circle(950, 3 * viewBoxHeight / 4, 50);
-                    rightCircle.attr({
-                        fill: segmentConfig.color || '#00F'
-                    });
+                    renderCircle(x + length - height / 2, y + height / 2, height / 2, color);
+                    length -= height / 2;
                 }
             }
-            segment = paper.rect(x, y + viewBoxHeight / 2, length, 100);
-            segment.attr({
-                fill: segmentConfig.color || '#00F'
-            });
-
-
+            renderRect(x, y, length, height, color);
         }
     }
 
@@ -143,6 +145,10 @@ var SegmentedBar = (function () {
         }
         var _x = 0;
         var _y = 0;
+
+        if (config.showValue) {
+            _y = 200 - config.segmentHeight;
+        }
         var xLength;
 
         if (segments.length == 1) {
@@ -170,6 +176,7 @@ var SegmentedBar = (function () {
 
         config.sideStyle = barConfig.sideStyle;
         config.showValue = barConfig.showValue;
+        config.segmentHeight = barConfig.segmentHeight || config.segmentHeight;
 
         setViewBox();
         renderSegments();
