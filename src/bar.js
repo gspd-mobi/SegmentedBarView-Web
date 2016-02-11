@@ -1,32 +1,35 @@
 var SegmentedBar = {
-    version : '0.0.1'
+    version: '0.0.1'
 };
-(function(window, document, SegmentedBar) {
+(function (window, document, SegmentedBar) {
     var paper = null;
     var segments = [];
     var bubbleRendered = false,
         bubbleX = 500,
         bubbleY = 0,
-        bubbleLength = 200;
+        bubbleLength = 200,
+        valuePositoinFound = false,
+        segmentDefaultText = "No Value";
 
     var defaultOptions = {
         emptySegmentText: "No segments",
         gap: 0,
         textSize: 10,
-        showDescription: true,
+        showDescription: false,
         sideStyle: "angle",
         showValue: false,
-        value: 0,
+        value: "no value",
         segmentHeight: 80,
         valueHeight: 120,
         bubbleColor: "#7492E2",
         backgroundColor: "#DBF2B5",
-        viewBoxHeight: 100
+        viewBoxHeight: 100,
+        descriptionSize : 40,
+        descriptionColor : '#000'
     };
 
-    var config = {
+    var config = {};
 
-    };
     function setViewBox() {
         if (paper == null) return;
 
@@ -34,7 +37,9 @@ var SegmentedBar = {
 
         if (config.showValue) {
             config.viewBoxHeight += config.valueHeight || defaultOptions.valueHeight;
-            console.log("viewBoxHeight =" + config.viewBoxHeight);
+        }
+        if (config.showDescription) {
+            config.viewBoxHeight += (config.descriptionSize || defaultOptions.descriptionSize);
         }
         paper.attr({
             viewBox: "0 0 1000 " + config.viewBoxHeight
@@ -107,21 +112,23 @@ var SegmentedBar = {
             var segment = segments[i];
             if (value == segment.minValue && segment.includeLeft) {
                 bubbleX = segment.startX;
+                valuePositoinFound = true;
                 break;
             }
             if (value == segment.maxValue && segment.includeRight) {
                 bubbleX = segment.endX;
+                valuePositoinFound = true;
                 break;
             }
             if (value > segment.minValue && value < segment.maxValue) {
                 bubbleX = (segment.endX - segment.startX) * (value - segment.minValue) / (segment.maxValue - segment.minValue) +
                     segment.startX;
-                console.log("bubbleX = " + bubbleX);
+                valuePositoinFound = true;
                 break;
             }
         }
-        if(bubbleX - 10 <= 0) {
-            bubbleX  += 50;
+        if (bubbleX - 10 <= 0) {
+            bubbleX += 50;
         }
         if (bubbleX + 10 >= 1000) {
             bubbleX -= 50;
@@ -131,7 +138,9 @@ var SegmentedBar = {
     function addBubble() {
         findBubblePosition();
         var color = config.bubbleColor || defaultOptions.bubbleColor;
-        renderBubbleTriangle(bubbleX, bubbleY, color);
+        if (valuePositoinFound) {
+            renderBubbleTriangle(bubbleX, bubbleY, color);
+        }
         var bubbleHeight = getBubbleHeight();
         var x = bubbleX - bubbleLength / 2;
         if (x < 0) {
@@ -140,7 +149,17 @@ var SegmentedBar = {
         if (x + bubbleLength > 1000) {
             x = 1000 - bubbleLength;
         }
-        renderBubble(x, bubbleHeight, color);
+        var y = bubbleY - bubbleHeight - 19;
+        renderBubble(x, y, bubbleHeight, color);
+
+        var text = renderText(0, -100, config.value || defaultOptions.value, 50);
+        var textBbox = text.getBBox();
+        console.log(textBbox);
+        text.attr({
+            fill: "#FFF",
+            x: x + (bubbleLength - textBbox.width) / 2,
+            y: y + textBbox.height
+        })
     }
 
     function getBubbleHeight() {
@@ -151,27 +170,25 @@ var SegmentedBar = {
             config.valueHeight = config.viewBoxHeight - valueHeight;
         }
 
-        return config.valueHeight || defaultOptions.valueHeight- 19;
+        return config.valueHeight || defaultOptions.valueHeight - 19;
     }
 
-    function renderBubble(x, height, color) {
-        renderRect(x, bubbleY - height - 19, bubbleLength, height, color, 15);
+    function renderBubble(x, y, height, color) {
+        renderRect(x, y, bubbleLength, height, color, 15);
     }
 
     function renderSegment(x, y, length, segmentConfig, type) {
 
-        var segment,
-            leftTriangle,
-            rightTriangle,
-            leftCircle,
-            rightCircle;
+        var textX = x,
+            textY = y,
+            segmentLength = length;
 
         var height = config.segmentHeight || defaultOptions.segmentHeight;
         var color = segmentConfig.color;
         var sideStyle = config.sideStyle || defaultOptions.sideStyle;
 
         if (type == "single") {
-            if (sideStyle == "angle" ) {
+            if (sideStyle == "angle") {
                 length -= height;
                 renderLeftTriangle(x, y, height, color);
                 x += height / 2;
@@ -217,6 +234,42 @@ var SegmentedBar = {
             segmentConfig.endX = x + length;
             renderRect(x, y, length, height, color);
         }
+
+        var text = getSegmentText(segmentConfig, type);
+        var textElem = renderText(textX, textY, text, 50);
+        var textBBox = textElem.getBBox();
+        textElem.attr({
+            fill: "#FFF",
+            x: textX + (segmentLength - textBBox.width) / 2,
+            y: textY +  textBBox.height - 5
+        });
+
+        if (config.showDescription) {
+            textY += height;
+           var descText = renderText(textX, textY, segmentConfig.descriptionText || "no description", config.descriptionSize || defaultOptions.descriptionSize - 5);
+            textBBox = descText.getBBox();
+            descText.attr({
+                fill: config.descriptionColor || defaultOptions.descriptionColor,
+                x: textX + (segmentLength - textBBox.width) / 2,
+                y: textY + textBBox.height - 10
+            });
+        }
+    }
+
+    function getSegmentText(segment, type) {
+        if (segment.text) {
+            return segment.text;
+        }
+        if (type == 'left') {
+            return '<' + segment.maxValue;
+        }
+        if (type == "right") {
+            return '>' + segment.minValue;
+        }
+        if (!segment.minValue || !segment.maxValue) {
+            return "";
+        }
+        return segment.minValue + '-' + segment.maxValue
     }
 
     function renderSegments() {
@@ -227,8 +280,12 @@ var SegmentedBar = {
         var _x = 0;
         var _y = 0;
 
+        var descText = 0;
+        if (config.showDescription) {
+           descText = (config.descriptionSize || defaultOptions.descriptionSize);
+        }
         if (config.showValue) {
-            _y = config.viewBoxHeight- config.segmentHeight;
+            _y = config.viewBoxHeight - config.segmentHeight - descText;
             bubbleY = _y;
         }
         var xLength;
@@ -255,20 +312,41 @@ var SegmentedBar = {
         }
     }
 
-     SegmentedBar.init = function (barConfig, _segments) {
+
+    function renderText(x, y, text, size) {
+        return paper.text(x, y, text).attr({
+            fontSize: size,
+            fontFamily: "Calibri"
+        });
+    }
+
+    function moveTextElement(textElement, x, y) {
+        textElement.attr({
+            x: x,
+            y: y
+        });
+    }
+
+
+    SegmentedBar.init = function (barConfig, _segments) {
         paper = Snap('100%', '100%');
+
+
         segments = _segments;
 
         config = barConfig;
 
-         bubbleX =500;
-         bubbleY = 0
+        bubbleX = 500;
+        bubbleY = 0;
+        valuePositoinFound = false;
 
         setViewBox();
         renderSegments();
         if (config.showValue) {
             addBubble();
         }
+
+
         return this;
     };
 
