@@ -4,12 +4,35 @@
     <meta charset="UTF-8">
     <title></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <style type="text/css">
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            visibility: hidden;
+        }
+
+        div {
+            position: relative;
+        }
+    </style>
 </head>
 <body>
+<div id="container1" class="scaling-svg-container">
+</div>
+<div id="container2" class="scaling-svg-container">
+</div>
+<div id="container3" class="scaling-svg-container">
+</div>
 <script src="bower_components/Snap.svg/dist/snap.svg.js"></script>
-<script src="src/triangle.js"></script>
 <script src="src/segment.js"></script>
 <script src="src/bar.js"></script>
-<script src="src/main.js"> </script>
+<script src="src/main.js"></script>
 </body>
 </html>

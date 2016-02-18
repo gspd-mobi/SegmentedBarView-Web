@@ -1,3 +1,5 @@
+'use strict';
+
 var SegmentedBar = {
     version: '0.0.1'
 };
@@ -19,13 +21,14 @@ var SegmentedBar = {
         sideStyle: "angle",
         showValue: false,
         value: "no value",
+        unit: [],
         segmentHeight: 80,
         valueHeight: 120,
         bubbleColor: "#7492E2",
         backgroundColor: "#DBF2B5",
         viewBoxHeight: 100,
-        descriptionSize : 40,
-        descriptionColor : '#000'
+        descriptionSize: 40,
+        descriptionColor: '#000'
     };
 
     var config = {};
@@ -45,9 +48,16 @@ var SegmentedBar = {
             viewBox: "0 0 1000 " + config.viewBoxHeight
         });
 
-        paper.rect(0, 0, '100%', '100%').attr({
-            fill: config.backgroundColor || defaultOptions.backgroundColor
-        });
+        //paper.rect(0, 0, '100%', '100%').attr({
+        //    fill: config.backgroundColor || defaultOptions.backgroundColor
+        //});
+
+        var canvas = document.createElement('canvas');
+        canvas.width = 1000;
+        canvas.height = config.viewBoxHeight;
+
+        var parent = paper.node.parentNode;
+        parent.insertBefore(canvas, paper.node);
     }
 
     //TODO: change this method using config parameters
@@ -76,7 +86,7 @@ var SegmentedBar = {
     }
 
     function renderLeftTriangle(x, y, size, color) {
-        var sizeHalf = size / 2;
+        var sizeHalf = Math.round(size / 2);
         return paper.polygon(x, y + sizeHalf, x + sizeHalf, y, x + sizeHalf, y + size)
             .attr({
                 fill: color
@@ -101,6 +111,23 @@ var SegmentedBar = {
     function renderBubbleTriangle(x, y, color) {
         console.log(x, y);
         return paper.polygon(x, y, x - 20, y - 20, x + 20, y - 20)
+            .attr({
+                fill: color
+            });
+    }
+
+    function renderLeftAngleSegment(x, y, size, color, length) {
+        var sizeHalf = Math.round(size / 2);
+        return paper.polygon(x, y + sizeHalf, x + sizeHalf, y, x + length, y, x + length, y + size, x + sizeHalf, y + size)
+            .attr({
+                fill: color
+            });
+    }
+
+
+    function renderRightAngleSegment(x, y, size, color, length) {
+        var sizeHalf = Math.round(size / 2);
+        return paper.polygon(x, y, x + length, y, x + length + sizeHalf, y + sizeHalf, x + length, y + size, x, y + size)
             .attr({
                 fill: color
             });
@@ -135,6 +162,24 @@ var SegmentedBar = {
         }
     }
 
+    function renderBubleText(x, y, size, color) {
+        var textArr = [config.value];
+        if (config.unit instanceof Array) {
+            config.unit.forEach(function (elem) {
+                textArr.push(elem.text);
+            });
+        }
+        return paper.text(x, y, textArr).attr({
+            fill: color,
+            fontSize: size,
+            fontFamily: "Calibri"
+        }).selectAll("tspan").forEach(function (elem, i) {
+            if ((i != 0 ) && (config.unit[i - 1].superscript)) {
+                elem.node.setAttribute('baseline-shift', 'super');
+            }
+        });
+    }
+
     function addBubble() {
         findBubblePosition();
         var color = config.bubbleColor || defaultOptions.bubbleColor;
@@ -152,14 +197,25 @@ var SegmentedBar = {
         var y = bubbleY - bubbleHeight - 19;
         renderBubble(x, y, bubbleHeight, color);
 
-        var text = renderText(0, -100, config.value || defaultOptions.value, 50);
+
+       // var text = renderBubleText(100, 100, 50,"#FFF");
+        var unit = config.unit ? config.unit.text : '';
+        var text = renderText(100, 100, (config.value || defaultOptions.value) + unit , 50);
         var textBbox = text.getBBox();
+
         console.log(textBbox);
+
         text.attr({
             fill: "#FFF",
             x: x + (bubbleLength - textBbox.width) / 2,
-            y: y + textBbox.height
-        })
+            y: y + (bubbleHeight - textBbox.height) / 2 + textBbox.height - 18
+        });
+    }
+
+    function checkIsArray(arr) {
+        if (Object.prototype.toString.call(arr) === '[object Array]') {
+            alert('Array!');
+        }
     }
 
     function getBubbleHeight() {
@@ -210,7 +266,7 @@ var SegmentedBar = {
         } else {
             if (type == "left") {
                 if (sideStyle == "angle") {
-                    renderLeftTriangle(x, y, height, color);
+                    renderLeftAngleSegment(x, y, height, color, length - height / 2);
                     length -= height / 2;
                     x += height / 2;
                 }
@@ -222,7 +278,7 @@ var SegmentedBar = {
             }
             if (type == "right") {
                 if (sideStyle == "angle") {
-                    renderRightTriangle(x + length - height / 2, y, height, color);
+                    renderRightAngleSegment(x, y, height, color, length - height / 2);
                     length -= height / 2;
                 }
                 if (sideStyle == "rounded") {
@@ -241,12 +297,12 @@ var SegmentedBar = {
         textElem.attr({
             fill: "#FFF",
             x: textX + (segmentLength - textBBox.width) / 2,
-            y: textY +  textBBox.height - 5
+            y: textY + textBBox.height - 5
         });
 
         if (config.showDescription) {
             textY += height;
-           var descText = renderText(textX, textY, segmentConfig.descriptionText || "no description", config.descriptionSize || defaultOptions.descriptionSize - 5);
+            var descText = renderText(textX, textY, segmentConfig.descriptionText || "no description", config.descriptionSize || defaultOptions.descriptionSize - 5);
             textBBox = descText.getBBox();
             descText.attr({
                 fill: config.descriptionColor || defaultOptions.descriptionColor,
@@ -282,7 +338,7 @@ var SegmentedBar = {
 
         var descText = 0;
         if (config.showDescription) {
-           descText = (config.descriptionSize || defaultOptions.descriptionSize);
+            descText = (config.descriptionSize || defaultOptions.descriptionSize);
         }
         if (config.showValue) {
             _y = config.viewBoxHeight - config.segmentHeight - descText;
@@ -296,7 +352,7 @@ var SegmentedBar = {
             // console.log("startX=" + segments[0].startX);
         } else {
             var gap = config.gap || defaultOptions.gap;
-            xLength = (1000 + gap) / segments.length - gap;
+            xLength = Math.round((1000 + gap) / segments.length - gap);
 
             segments.forEach(function (segment, i, segments) {
                 if (i == 0) {
@@ -316,7 +372,7 @@ var SegmentedBar = {
     function renderText(x, y, text, size) {
         return paper.text(x, y, text).attr({
             fontSize: size,
-            fontFamily: "Calibri"
+            fontFamily: "Calibri, verdana, tahoma"
         });
     }
 
@@ -328,8 +384,13 @@ var SegmentedBar = {
     }
 
 
-    SegmentedBar.init = function (barConfig, _segments) {
+    SegmentedBar.init = function (container, barConfig, _segments) {
         paper = Snap('100%', '100%');
+        paper.node.removeAttribute('height');
+
+        if (container) {
+            container.appendChild(paper.node);
+        }
 
 
         segments = _segments;
@@ -345,7 +406,6 @@ var SegmentedBar = {
         if (config.showValue) {
             addBubble();
         }
-
 
         return this;
     };
