@@ -13,20 +13,14 @@ segments.push(new Segment({color: "#EF3D2F", minValue: 11, maxValue: 20, include
 //segments.push(new Segment({color : "#EF3D2F", minValue: 1, maxValue: 3}));
 //segments.push(new Segment({color : "#EF3D2F", minValue: 1, maxValue: 3}));
 
-var unit = {
-    text: 'm',
-    superscript: false
-};
-
 var a = SegmentedBar.init(container1, {
     sideStyle: "normal",
     showValue: true,
     segmentHeight: 80,
     value: 8,
     gap: 20,
-    unit: unit,
+    unit: '10<sup>12</sup>/l',
     showDescription: true,
-    backgroundColor: "#FFF"
 }, segments);
 var b = SegmentedBar.init(container2, {
     sideStyle: "rounded",
@@ -43,7 +37,6 @@ var c = SegmentedBar.init(container3, {
     value: 9,
     gap: 20,
     showDescription: true,
-    backgroundColor: "#FFF"
 }, segments);
 //
 //var segments1 = [];

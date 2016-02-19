@@ -48,9 +48,9 @@ var SegmentedBar = {
             viewBox: "0 0 1000 " + config.viewBoxHeight
         });
 
-        //paper.rect(0, 0, '100%', '100%').attr({
-        //    fill: config.backgroundColor || defaultOptions.backgroundColor
-        //});
+        paper.rect(0, 0, '100%', '100%').attr({
+            fill: config.backgroundColor || defaultOptions.backgroundColor
+        });
 
         var canvas = document.createElement('canvas');
         canvas.width = 1000;
@@ -68,7 +68,7 @@ var SegmentedBar = {
         });
         var text = paper.text(0, 0, config.emptySegmentText || defaultOptions.emptySegmentText).attr({
             fontSize: 40,
-            fontFamily: "Calibri"
+            fontFamily: "Calibri, verdana, tahoma"
         });
         var bbox = text.getBBox();
 
@@ -162,22 +162,60 @@ var SegmentedBar = {
         }
     }
 
-    function renderBubleText(x, y, size, color) {
-        var textArr = [config.value];
-        if (config.unit instanceof Array) {
-            config.unit.forEach(function (elem) {
-                textArr.push(elem.text);
+    function renderBubbleText(x, y, size, color) {
+        var textArr = [config.value + (config.unit ? '\u00A0' : '')],
+            unitArr = parseUnitHtml(config.unit || '');
+
+        unitArr.forEach(function (unit) {
+            textArr.push(unit.text || '');
+        });
+
+        var bbox,
+            textElem,
+            width = 0,
+            height = 0;
+
+        var textElements = [];
+
+        textArr.forEach(function (text, i) {
+            textElem = paper.text(x, y, text).attr({
+                fill: color,
+                'font-size': i == 0 ? size : size - 20,
+                fontFamily: "Calibri, verdana, tahoma"
+            });
+            var bbox = textElem.getBBox();
+            x += bbox.width;
+            width += bbox.width;
+            if (height < bbox.height) {
+                height = bbox.height;
+            }
+            if ((i != 0) && unitArr[i - 1].superscript) {
+                textElem.superscript = true;
+            }
+
+            textElements.push(textElem);
+        });
+
+        return {
+            width: width,
+            height: height,
+            textElements: textElements
+        }
+    }
+
+    function parseUnitHtml(html) {
+        var root = document.createElement('div');
+        root.innerHTML = html;
+        var nodes = root.childNodes;
+
+        var units = [];
+        for (var i = 0; i < nodes.length; i++) {
+            units.push({
+                text: nodes[i].textContent,
+                superscript: nodes[i].tagName == 'SUP'
             });
         }
-        return paper.text(x, y, textArr).attr({
-            fill: color,
-            fontSize: size,
-            fontFamily: "Calibri"
-        }).selectAll("tspan").forEach(function (elem, i) {
-            if ((i != 0 ) && (config.unit[i - 1].superscript)) {
-                elem.node.setAttribute('baseline-shift', 'super');
-            }
-        });
+        return units;
     }
 
     function addBubble() {
@@ -198,18 +236,22 @@ var SegmentedBar = {
         renderBubble(x, y, bubbleHeight, color);
 
 
-       // var text = renderBubleText(100, 100, 50,"#FFF");
-        var unit = config.unit ? config.unit.text : '';
-        var text = renderText(100, 100, (config.value || defaultOptions.value) + unit , 50);
-        var textBbox = text.getBBox();
+        var renderTextResult = renderBubbleText(100, 100, 50, "#FFF");
 
-        console.log(textBbox);
+        x += (bubbleLength - renderTextResult.width) / 2;
+        y += (bubbleHeight - renderTextResult.height) / 2 + renderTextResult.height - 18;
 
-        text.attr({
-            fill: "#FFF",
-            x: x + (bubbleLength - textBbox.width) / 2,
-            y: y + (bubbleHeight - textBbox.height) / 2 + textBbox.height - 18
+        renderTextResult.textElements.forEach(function (elem) {
+            elem.attr({
+                x: x,
+                y: elem.superscript ? y - 15 : y
+            });
+            x += elem.getBBox().width;
         });
+    }
+
+    function renderBbox(bbox) {
+        renderRect(bbox.x, bbox.y, bbox.width, bbox.height, '#0F0');
     }
 
     function checkIsArray(arr) {
@@ -267,6 +309,7 @@ var SegmentedBar = {
             if (type == "left") {
                 if (sideStyle == "angle") {
                     renderLeftAngleSegment(x, y, height, color, length - height / 2);
+                    length -= height / 2;
                     length -= height / 2;
                     x += height / 2;
                 }
@@ -390,6 +433,7 @@ var SegmentedBar = {
 
         if (container) {
             container.appendChild(paper.node);
+            container.style.overflow = 'hidden';
         }
 
 
