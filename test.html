@@ -6,10 +6,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
 </head>
 <body>
-<script src="bower_components/Snap.svg/dist/snap.svg.js"></script>
-<script src="src/triangle.js"></script>
-<script src="src/segment.js"></script>
-<script src="src/bar-old.js"></script>
-<script src="src/main.js"> </script>
+
+<div id="svg-container">
+
+</div>
+<div id="svg-container1">
+
+</div>
+<script src="src/core.js"></script>
+<script src="src/svg.js"></script>
+<script src="src/bar.js"></script>
+<script>
+    function createBars() {
+        var elem = document.getElementById('svg-container');
+        elem.innerHTML = '';
+        var bar = SegmentedBar.Bar.createBar(elem, {width: elem.offsetWidth});
+
+        var elem1 = document.getElementById('svg-container1');
+        elem1.innerHTML = '';
+        var bar1 = SegmentedBar.Bar.createBar(elem1, {width: elem.offsetWidth});
+    }
+
+    window.addEventListener('resize', createBars);
+
+
+
+
+
+//    var elem1 = document.getElementById('svg-container1');
+//    var svg1 = SegmentedBar.createPaper(elem1);
+//    var rect1 = SegmentedBar.Svg.drawRect(svg1, 0, 0, '100%', '100%', '#435545');
+</script>
 </body>
 </html>

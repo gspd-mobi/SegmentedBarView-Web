@@ -1,18 +1,15 @@
-(function (window, document, SegmentedBarView) {
+SegmentedBar.Bar = (function (window, document, SegmentedBar) {
     'use strict';
 
-    var defaultOptions = {
+    //TODO: Add option to create fixed size bar
+    function createBar(container, config) {
+        var paper = SegmentedBar.createPaper(container, config.width, config.height);
 
-    };
-
-
-
-
-    function createChart(containter, width, height) {
-        SegmentedBarView.createPaper(containter, width, height);
-        SegmentedBarView.Paper.renderRect(10, 10, SegmentedBarView.Paper.viewBox.width - 20, SegmentedBarView.Paper.viewBox.height - 20, '#0F0');
+        var rect = SegmentedBar.Svg.drawRect(paper, 0, 0, '100%', '200', '#435545');
+        var rect2 = SegmentedBar.Svg.drawRect(paper, 0, 0, '500', '100', '#0FF');
     }
-    SegmentedBarView.Bar = {
-        createChart : createChart
-    };
-}(window, document, SegmentedBarView));
+
+    return {
+        createBar : createBar
+    }
+})(window, document, SegmentedBar);

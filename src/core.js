@@ -1,24 +1,23 @@
-var SegmentedBarView = {
-    version: '0.0.1'
+var SegmentedBar = {
+    namespace: 'http://www.w3.org/2000/svg'
 };
 
-(function (window, document, SegmentedBarView) {
+(function (window, document, SegmentedBar) {
     'use strict';
-    SegmentedBarView.precision = 5;
 
-    SegmentedBarView.parent = document;
+    //TODO: add ability to create custom height, width
+    SegmentedBar.createPaper = function createPaper(container, width, height, className) {
+        var svgElement;
 
-    SegmentedBarView.querySelector = function (query) {
-        return query instanceof Node ? query : document.querySelector(query);
-    };
+        svgElement = SegmentedBar.Svg.createElement('svg', {
+            width: width,
+            height: width * 0.2,
+            viewBox : '0 0 1000 200'
+        });
 
-    SegmentedBarView.roundWithPrecision = function (value, digits) {
-        var precision = Math.pow(10, digits || SegmentedBarView.precision);
-        return Math.round(value * precision) / precision;
-    };
+        container.appendChild(svgElement);
 
-
-    SegmentedBarView.createPaper = function (containter, width, height) {
-        return new SegmentedBarView.Paper.constructor(containter);
+        return svgElement;
     }
-}(window, document, SegmentedBarView));
+
+})(window, document, SegmentedBar);
