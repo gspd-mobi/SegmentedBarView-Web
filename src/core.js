@@ -1,18 +1,21 @@
-var SegmentedBar = {
-    namespace: 'http://www.w3.org/2000/svg'
-};
+var SegmentedBar = {};
 
 (function (window, document, SegmentedBar) {
     'use strict';
+    SegmentedBar.namespaces = {
+        svg: 'http://www.w3.org/2000/svg',
+        xmlns: 'http://www.w3.org/2000/xmlns/',
+        segview: ' https://github.com/gspd-mobi/SegmentedBarView-Web'
+    };
 
     //TODO: add ability to create custom height, width
-    SegmentedBar.createPaper = function createPaper(container, width, height, className) {
+    SegmentedBar.createPaper = function createPaper(container, config) {
         var svgElement;
 
         svgElement = SegmentedBar.Svg.createElement('svg', {
-            width: width,
-            height: width * 0.2,
-            viewBox : '0 0 1000 200'
+            width: config.width,
+            height: config.height,
+            viewBox: config.viewBox
         });
 
         container.appendChild(svgElement);

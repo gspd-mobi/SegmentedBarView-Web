@@ -17,25 +17,10 @@
 <script src="src/svg.js"></script>
 <script src="src/bar.js"></script>
 <script>
-    function createBars() {
-        var elem = document.getElementById('svg-container');
-        elem.innerHTML = '';
-        var bar = SegmentedBar.Bar.createBar(elem, {width: elem.offsetWidth});
+    var elem = document.getElementById('svg-container');
+    var bar = new SegmentedBar.Bar(elem, {width: elem.offsetWidth});
+    var bar1 = new SegmentedBar.Bar(elem, {width: elem.offsetWidth});
 
-        var elem1 = document.getElementById('svg-container1');
-        elem1.innerHTML = '';
-        var bar1 = SegmentedBar.Bar.createBar(elem1, {width: elem.offsetWidth});
-    }
-
-    window.addEventListener('resize', createBars);
-
-
-
-
-
-//    var elem1 = document.getElementById('svg-container1');
-//    var svg1 = SegmentedBar.createPaper(elem1);
-//    var rect1 = SegmentedBar.Svg.drawRect(svg1, 0, 0, '100%', '100%', '#435545');
 </script>
 </body>
 </html>
