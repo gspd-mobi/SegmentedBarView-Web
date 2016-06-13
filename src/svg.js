@@ -14,11 +14,25 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
         return createElement('rect', attributes, paper);
     }
 
+    function drawLabel(paper, x, y, label) {
+        var attributes = {
+            x: x,
+            y: y,
+            text: label.text,
+            fill: label.color,
+            style: 'font-size:' + label.fontSize + ';font-family:' + label.fontFamily +';'
+        };
+        return createElement('text', attributes, paper);
+    }
+
     //TODO: add insertBefore parameter
     function createElement(elemName, attributes, parent) {
         var node = document.createElementNS(SegmentedBar.namespaces.svg, elemName);
         if (elemName === 'svg') {
             setAttributes(node, {'xmlns:segview': SegmentedBar.namespaces.segview})
+        }
+        if (elemName === 'text') {
+            node.innerHTML = attributes.text;
         }
         if (attributes) {
             setAttributes(node, attributes);
@@ -39,7 +53,8 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
     return {
         createElement: createElement,
         setAttributes: setAttributes,
-        drawRect: drawRect
+        drawRect: drawRect,
+        drawLabel : drawLabel
     }
 
 })(window, document, SegmentedBar);

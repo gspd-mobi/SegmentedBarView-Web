@@ -14,6 +14,7 @@
             emptySegmentColor: "#858585",
             gap: 0,
             textSize: 10,
+            textFont: "Calibri, verdana, tahoma",
             showDescription: false,
             sideStyle: "rounded",
             sideRadius: 50,
@@ -50,6 +51,17 @@
             if (self.config.sideStyle === "normal") {
                 SegmentedBar.Svg.drawRect(self.paper, 0, 0, '100%', self.config.segmentHeight, 0, self.config.emptySegmentColor)
             }
+            var label = {
+                text: self.config.emptySegmentText,
+                color: self.config.emptySegmentTextColor,
+                fontSize: self.config.textSize,
+                fontFamily: self.config.textFont
+            };
+            SegmentedBar.Svg.drawLabel(self.paper, 0, 50, label);
+        }
+
+        function renderSegments() {
+
         }
 
         function createBar() {
@@ -70,6 +82,8 @@
 
             if (typeof self.config.segments === 'undefined' || self.config.segments.length === 0) {
                 renderEmptySegment();
+            } else {
+                renderSegments();
             }
         }
 
