@@ -12,7 +12,7 @@
             emptySegmentText: "No segments",
             emptySegmentTextColor: "#FFF",
             emptySegmentColor: "#858585",
-            gap: 0,
+            gap: 10,
             textSize: 10,
             textFont: "Calibri, verdana, tahoma",
             showDescription: false,
@@ -29,7 +29,17 @@
             viewBoxWidth: 1000,
             descriptionSize: 40,
             descriptionColor: '#000',
-            segments: []
+            segments: [
+                {
+                    color: "#EF3D2F"
+                },
+                {
+                    color: "#8CC63E"
+                },
+                {
+                    color: "#EF3D2F"
+                }
+            ]
         };
 
         createBar();
@@ -60,8 +70,28 @@
             SegmentedBar.Svg.drawLabel(self.paper, 0, 50, label);
         }
 
-        function renderSegments() {
+        function renderSegment(segment) {
+            SegmentedBar.Svg.drawRect(self.paper, segment.x, segment.y, segment.length, self.config.segmentHeight, 0, segment.color);
+        }
 
+        function renderSegments() {
+            var startY = 0,
+                startX = 0,
+                segmentsCount = self.config.segments.length,
+                segmentLength = (self.config.viewBoxWidth - (segmentsCount - 1) * self.config.gap) / segmentsCount,
+                segment = null;
+
+            if (self.config.valueHeight > 0 && self.showValue) {
+                startY = self.config.valueHeight;
+            }
+            for (var i = 0; i < self.config.segments.length; i++) {
+                segment = self.config.segments[i];
+                segment.x = startX;
+                segment.y = startY;
+                segment.length = segmentLength;
+                renderSegment(segment);
+                startX += segmentLength + self.config.gap;
+            }
         }
 
         function createBar() {
@@ -80,7 +110,7 @@
 
             SegmentedBar.Svg.drawRect(self.paper, 0, 0, '100%', '100%', 0, self.config.backgroundColor);
 
-            if (typeof self.config.segments === 'undefined' || self.config.segments.length === 0) {
+            if (!self.config.segments || self.config.segments.length === 0) {
                 renderEmptySegment();
             } else {
                 renderSegments();
