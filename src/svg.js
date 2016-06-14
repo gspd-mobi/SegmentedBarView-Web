@@ -20,9 +20,89 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
             y: y,
             text: label.text,
             fill: label.color,
-            style: 'font-size:' + label.fontSize + ';font-family:' + label.fontFamily +';'
+            style: 'font-size:' + label.fontSize + ';font-family:' + label.fontFamily + ';'
         };
         return createElement('text', attributes, paper);
+    }
+
+    function drawRoundedLeftRect(paper, x, y, width, height, color) {
+        var r = height / 2;
+        x += r;
+        width -= r;
+        var x1 = x + width,
+            y1 = y + height,
+            d = "M " + x + " " + y + " L " + x1 + " " + y + " L " + x1 + " " + y1 + " L " +
+                x + " " + y1 + " A 10 10 0 1 1 " + x + " " + y;
+
+        var attributes = {
+            d: d,
+            fill: color
+        };
+        return createElement('path', attributes, paper);
+    }
+
+    function drawRoundedRightRect(paper, x, y, width, height, color) {
+        width -= height / 2;
+        var x1 = x + width,
+            y1 = y + height,
+            d = "M " + x + " " + y + " L " + x1 + " " + y + " L " + x1 + " " + y1 + " L " +
+                x + " " + y1 + " M " + x1 + " " + y1 + " A 10 10 0 1 0 " + x1 + " " + y;
+
+        var attributes = {
+            d: d,
+            fill: color
+        };
+
+        return createElement('path', attributes, paper)
+    }
+
+    function drawAngleLeftRect(paper, x, y, width, height, color) {
+        var r = height / 2;
+        x += r;
+        width -= r;
+        var x1 = x + width,
+            y1 = y + height,
+            d = "M " + x + " " + y + " L " + x1 + " " + y + " L " + x1 + " " + y1 + " L " +
+                x + " " + y1 + " L " + (x - r) + " " + (y1 - r) + " L " + x + " " + y;
+
+        var attributes = {
+            d: d,
+            fill: color
+        };
+        return createElement('path', attributes, paper);
+    }
+
+    function drawAngleRightRect(paper, x, y, width, height, color) {
+        var r = height / 2;
+        width -= r;
+        var x1 = x + width,
+            y1 = y + height,
+            d = "M " + x + " " + y + " L " + x1 + " " + y + " L " + (x1 + r) + " " + (y + r) + " L " +
+                x1 + " " + y1 + " L " + x + " " + y1 + " L " + x + " " + y;
+
+        var attributes = {
+            d: d,
+            fill: color
+        };
+
+        return createElement('path', attributes, paper)
+    }
+
+    function drawHexagon(paper, x, y, width, height, color) {
+        var r = height / 2;
+        width -= r * 2;
+        x += r;
+        var x1 = x + width,
+            y1 = y + height,
+            d = "M " + x + " " + y + " L " + x1 + " " + y + " L " + (x1 + r) + " " + (y + r) + " L " +
+                x1 + " " + y1 + " L " + x + " " + y1 + " L " + (x - r) + " " + (y + r) + " L " + x + " " + y;
+
+        var attributes = {
+            d: d,
+            fill: color
+        };
+
+        return createElement('path', attributes, paper)
     }
 
     //TODO: add insertBefore parameter
@@ -54,7 +134,12 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
         createElement: createElement,
         setAttributes: setAttributes,
         drawRect: drawRect,
-        drawLabel : drawLabel
+        drawLabel: drawLabel,
+        drawRoundedLeftRect: drawRoundedLeftRect,
+        drawRoundedRightRect: drawRoundedRightRect,
+        drawAngleLeftRect: drawAngleLeftRect,
+        drawAngleRightRect: drawAngleRightRect,
+        drawHexagon : drawHexagon
     }
 
 })(window, document, SegmentedBar);

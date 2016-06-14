@@ -16,7 +16,7 @@
             textSize: 10,
             textFont: "Calibri, verdana, tahoma",
             showDescription: false,
-            sideStyle: "rounded",
+            sideStyle: "angle",
             sideRadius: 50,
             showValue: false,
             value: "no value",
@@ -71,7 +71,40 @@
         }
 
         function renderSegment(segment) {
-            SegmentedBar.Svg.drawRect(self.paper, segment.x, segment.y, segment.length, self.config.segmentHeight, 0, segment.color);
+            if (segment.sideStyle == "normal") {
+                SegmentedBar.Svg.drawRect(self.paper, segment.x, segment.y, segment.length,
+                    self.config.segmentHeight, 0, segment.color);
+            }
+            if (segment.sideStyle === "rounded") {
+                if (segment.position === "first") {
+                    SegmentedBar.Svg.drawRoundedLeftRect(self.paper, segment.x, segment.y, segment.length,
+                        self.config.segmentHeight, segment.color);
+                } else if (segment.position == "last") {
+                    SegmentedBar.Svg.drawRoundedRightRect(self.paper, segment.x, segment.y, segment.length,
+                        self.config.segmentHeight, segment.color);
+                } else if (segment.position == "single") {
+                    SegmentedBar.Svg.drawRect(self.paper, segment.x, segment.y, segment.length,
+                        self.config.segmentHeight, self.config.segmentHeight / 2, segment.color);
+                } else {
+                    SegmentedBar.Svg.drawRect(self.paper, segment.x, segment.y, segment.length,
+                        self.config.segmentHeight, 0, segment.color);
+                }
+            }
+            if (segment.sideStyle === "angle") {
+                if (segment.position === "first") {
+                    SegmentedBar.Svg.drawAngleLeftRect(self.paper, segment.x, segment.y, segment.length,
+                        self.config.segmentHeight, segment.color);
+                } else if (segment.position === "last") {
+                    SegmentedBar.Svg.drawAngleRightRect(self.paper, segment.x, segment.y, segment.length,
+                        self.config.segmentHeight, segment.color);
+                } else if (segment.position === "single") {
+                    SegmentedBar.Svg.drawHexagon(self.paper, segment.x, segment.y, segment.length,
+                        self.config.segmentHeight, segment.color);
+                } else {
+                    SegmentedBar.Svg.drawRect(self.paper, segment.x, segment.y, segment.length,
+                        self.config.segmentHeight, 0, segment.color);
+                }
+            }
         }
 
         function renderSegments() {
@@ -84,11 +117,24 @@
             if (self.config.valueHeight > 0 && self.showValue) {
                 startY = self.config.valueHeight;
             }
-            for (var i = 0; i < self.config.segments.length; i++) {
+            for (var i = 0; i < segmentsCount; i++) {
                 segment = self.config.segments[i];
                 segment.x = startX;
                 segment.y = startY;
                 segment.length = segmentLength;
+                segment.sideStyle = self.config.sideStyle;
+
+                if (segmentsCount == 1) {
+                    segment.position = "single";
+                } else {
+                    if (i == 0) {
+                        segment.position = "first";
+                    }
+                    if (i == segmentsCount - 1) {
+                        segment.position = "last";
+                    }
+                }
+
                 renderSegment(segment);
                 startX += segmentLength + self.config.gap;
             }
