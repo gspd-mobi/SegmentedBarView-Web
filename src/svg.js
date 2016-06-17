@@ -20,7 +20,7 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
             y: y,
             text: label.text,
             fill: label.color,
-            style: 'font-size:' + label.fontSize + ';font-family:' + label.fontFamily + ';'
+            style: 'font-size:' + label.fontSize  + 'px' + ';font-family: ' + label.fontFamily + ';'
         };
         return createElement('text', attributes, paper);
     }
@@ -54,6 +54,43 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
         };
 
         return createElement('path', attributes, paper)
+    }
+
+    //TODO: refactor this method, replace zero with topY
+    function drawBubble(paper, x, y, width, height, r, color, maxX) {
+        var x1 = x - width / 2,
+            triangleSize = 15,
+            y1 = y - triangleSize;
+        if (x1 < 0) {
+            x1 = 0;
+        }
+        if (x1 + width > maxX) {
+            x1 = maxX - width;
+        }
+
+        var
+            d = M(x, y) + ' ' + L(x - triangleSize, y1) + ' ' + L(x1 + r, y1) + ' ' + A(r, r, 0, 0, 1, x1, y1 - r) +
+                L(x1, r) + ' ' + A(r, r, 0, 0, 1, x1 + r, 0) + ' ' + L(x1 + width - r, 0) +
+                A(r, r, 0, 0, 1, x1 + width, r) + ' ' + L(x1 + width, y1 - r) + ' ' +
+                A(r, r, 0, 0, 1, x1 + width - r, y1) + ' ' + L(x + triangleSize, y1) + ' ' + L(x, y);
+
+        var attributes = {
+            d: d,
+            fill: color
+        };
+        return createElement('path', attributes, paper);
+    }
+
+    function M(x, y) {
+        return 'M ' + x + ' ' + y;
+    }
+
+    function L(x, y) {
+        return 'L ' + x + ' ' + y;
+    }
+
+    function A(rx, ry, xRotation, arcFlag, sweepFlag, x, y) {
+        return 'A ' + rx + ' ' + ry + ' ' + xRotation + ' ' + arcFlag + ' ' + sweepFlag + ' ' + x + ' ' + y;
     }
 
     function drawAngleLeftRect(paper, x, y, width, height, color) {
@@ -139,7 +176,8 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
         drawRoundedRightRect: drawRoundedRightRect,
         drawAngleLeftRect: drawAngleLeftRect,
         drawAngleRightRect: drawAngleRightRect,
-        drawHexagon : drawHexagon
+        drawHexagon: drawHexagon,
+        drawBubble : drawBubble
     }
 
 })(window, document, SegmentedBar);
