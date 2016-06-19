@@ -1,7 +1,7 @@
 {
   "name": "SegmentedBarView",
   "description": "Javascript library which is showing data as a segments and a value inside them.",
-  "main": "",
+  "main": "segmentedbar.js",
   "moduleType": [],
   "keywords": [
     "svg",

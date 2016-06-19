@@ -8,7 +8,6 @@ var SegmentedBar = {};
         segview: ' https://github.com/gspd-mobi/SegmentedBarView-Web'
     };
 
-    //TODO: add ability to create custom height, width
     SegmentedBar.createPaper = function createPaper(container, config) {
         var svgElement;
 
