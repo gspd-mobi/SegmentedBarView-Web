@@ -78,7 +78,11 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
             d: d,
             fill: color
         };
-        return createElement('path', attributes, paper);
+        return {
+            elem : createElement('path', attributes, paper),
+            x : x1,
+            y : 0
+        }
     }
 
     function M(x, y) {
@@ -149,7 +153,8 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
             setAttributes(node, {'xmlns:segview': SegmentedBar.namespaces.segview})
         }
         if (elemName === 'text') {
-            node.innerHTML = attributes.text;
+            var textNode = document.createTextNode(attributes.text);
+            node.appendChild(textNode);
         }
         if (attributes) {
             setAttributes(node, attributes);

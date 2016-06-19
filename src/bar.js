@@ -7,19 +7,17 @@
         this.container = container;
         this.config = config;
         this.bubbleRendereded = false;
-        //TODO: Create more human-friendly config
         this.defaultConfig = {
-            emptySegmentText: "No segments",
+            emptySegmentText: "No data",
             emptySegmentTextColor: "#FFF",
             emptySegmentColor: "#858585",
             gap: 10,
-            textSize: 25,
+            textSize: 35,
             textFont: "Calibri, verdana, tahoma",
-            showDescription: false,
-            sideStyle: "rounded",
+            sideStyle: "angle",
             sideRadius: 50,
-            showValue: true,
-            value: 160,
+            showValue: false,
+            value: 144,
             unit: [],
             segmentHeight: 80,
             valueHeight: 100,
@@ -28,24 +26,8 @@
             viewBoxHeight: 100,
             viewBoxWidth: 1000,
             descriptionSize: 40,
-            descriptionColor: '#000',
-            segments: [
-                {
-                    color: "#FF0000",
-                    minValue: 124,
-                    maxValue: 134
-                },
-                {
-                    color: "#008000",
-                    minValue: 134,
-                    maxValue: 144
-                },
-                {
-                    color: "#FF0000",
-                    minValue: 144,
-                    maxValue: 160
-                }
-            ]
+            descriptionColor: '#FFF',
+            segments: []
         };
 
         createBar();
@@ -61,12 +43,15 @@
 
         //TODO: add angle empty segment
         function renderEmptySegment() {
-            if (self.config.sideStyle === "rounded") {
+            if (self.config.sideStyle === 'rounded') {
                 var radius = self.config.segmentHeight * self.config.sideRadius / 100;
-                SegmentedBar.Svg.drawRect(self.paper, 0, 0, '100%', self.config.segmentHeight, radius, self.config.emptySegmentColor)
+                SegmentedBar.Svg.drawRect(self.paper, 0, 0, '100%', self.config.segmentHeight, radius, self.config.emptySegmentColor);
             }
-            if (self.config.sideStyle === "normal") {
-                SegmentedBar.Svg.drawRect(self.paper, 0, 0, '100%', self.config.segmentHeight, 0, self.config.emptySegmentColor)
+            if (self.config.sideStyle === 'normal') {
+                SegmentedBar.Svg.drawRect(self.paper, 0, 0, '100%', self.config.segmentHeight, 0, self.config.emptySegmentColor);
+            }
+            if (self.config.sideStyle === 'angle') {
+                SegmentedBar.Svg.drawHexagon(self.paper, 0, 0, self.config.viewBoxWidth, self.config.segmentHeight, self.config.emptySegmentColor);
             }
             var label = {
                 text: self.config.emptySegmentText,
@@ -74,38 +59,67 @@
                 fontSize: self.config.textSize,
                 fontFamily: self.config.textFont
             };
-            SegmentedBar.Svg.drawLabel(self.paper, 0, 50, label);
+            renderLabelInRectCenter(label, 0, 0, self.config.viewBoxWidth, self.config.segmentHeight);
         }
 
-        function renderBubble(x, y) {
-            var height = self.config.valueHeight;
-            SegmentedBar.Svg.drawBubble(self.paper, x, y, 200, height, 15, "#7492E2", self.config.viewBoxWidth);
+        function renderBubble(x, y, segmentFounded) {
+            var height = self.config.valueHeight,
+                label = {
+                    text: self.config.value,
+                    fontSize: self.config.textSize,
+                    fontFamily: self.config.textFont,
+                    color: self.config.descriptionColor
+
+                };
+
+            if (segmentFounded) {
+                var bubble = SegmentedBar.Svg.drawBubble(self.paper, x, y, 200, height, 15, self.config.bubbleColor, self.config.viewBoxWidth);
+                renderLabelInRectCenter(label, bubble.x, bubble.y, 200, height - 15);
+            } else {
+                var bubble = SegmentedBar.Svg.drawRect(self.paper, x - 100, y ,200, height - 15, 15,self.config.bubbleColor);
+                renderLabelInRectCenter(label, x - 100, y, 200, height - 15);
+            }
+            self.bubbleRendereded = true;
         }
 
-        function renderLabelInRectCenter(x, y, width, height, text) {
-            var label = {
-                text: text,
-                fontSize: self.config.textSize,
-                fontFamily: self.config.textFont,
-                color: self.config.descriptionColor
-
-            };
+        function renderLabelInRectCenter(label, x, y, width, height) {
             var labelNode = SegmentedBar.Svg.drawLabel(self.paper, x, y, label);
-            var bbox = labelNode.getBoundingClientRect(),
+            var bbox = labelNode.getBBox(),
+                fontSize = parseInt(window.getComputedStyle(labelNode)["fontSize"]),
                 labelX = x + (width - bbox.width) / 2,
-                labelY = y + (height - bbox.height) / 2 + bbox.height / 2;
+                labelY = y + (height + bbox.height) / 2 - fontSize / 3;
 
             console.log('BBox :' + bbox.width + ' ' + bbox.height);
             console.log(labelX + ' ' + labelY);
             SegmentedBar.Svg.setAttributes(labelNode, {
                 x: labelX,
                 y: labelY
-            })
+            });
+        }
 
+        function getSegmentText(segment) {
+            if (segment.descriptionText) {
+                return segment.descriptionText;
+            }
+            if (segment.position == 'first') {
+                return '<' + segment.minValue;
+            }
+            if (segment.position == "last") {
+                return '>' + segment.maxValue;
+            }
+            return segment.minValue + '-' + segment.maxValue;
         }
 
         function renderSegmentLabel(segment) {
-            renderLabelInRectCenter(segment.x, segment.y, segment.length, segment.height, segment.minValue);
+            var text = getSegmentText(segment),
+                label = {
+                    text: text,
+                    fontSize: self.config.textSize,
+                    fontFamily: self.config.textFont,
+                    color: self.config.descriptionColor
+
+                };
+            renderLabelInRectCenter(label, segment.x, segment.y, segment.length, segment.height);
         }
 
         function renderSegment(segment) {
@@ -145,9 +159,12 @@
             }
             renderSegmentLabel(segment);
 
-            if (self.config.value && self.config.showValue) {
-                if (segment.minValue <= self.config.value && segment.maxValue >= self.config.value) {
-                    renderBubble(findBubbleX(segment), segment.y);
+            var value = self.config.value;
+            if (value && self.config.showValue && !self.bubbleRendereded) {
+                if (segment.minValue < value && segment.maxValue > value) {
+                    renderBubble(findBubbleX(segment), segment.y, true);
+                } else if ((segment.minValue === value && segment.includeLeft) || (segment.maxValue === value && segment.includeRight)) {
+                    renderBubble(findBubbleX(segment), segment.y, true);
                 }
             }
 
@@ -198,6 +215,9 @@
                 renderSegment(segment);
                 startX += segmentLength + self.config.gap;
             }
+            if (self.config.showValue && self.config.value && !self.bubbleRendereded) {
+                renderBubble(self.config.viewBoxWidth / 2, 0, false);
+            }
         }
 
         function createBar() {
@@ -224,9 +244,15 @@
         }
 
         function normalizeData() {
-            //TODO: merge default and user data
-            self.config = self.defaultConfig;
-
+            Object.keys(self.defaultConfig).forEach(function (key) {
+                if (!self.config[key]) {
+                    self.config[key] = self.defaultConfig[key];
+                }
+            });
+            if (!self.config.showValue || self.config.segments.length === 0 || !self.config.value) {
+                self.config.valueHeight = 0;
+            }
+            console.log(self.config);
             setViewBox();
         }
 
@@ -237,14 +263,12 @@
         }
 
         function setViewBox() {
-            self.config.viewBoxHeight = self.config.segmentHeight || self.defaultConfig.segmentHeight;
+            self.config.viewBoxHeight = self.config.segmentHeight;
 
             if (self.config.showValue) {
-                self.config.viewBoxHeight += self.config.valueHeight || self.defaultConfig.valueHeight;
+                self.config.viewBoxHeight += self.config.valueHeight;
             }
-            if (self.config.showDescription) {
-                self.config.viewBoxHeight += (self.config.descriptionSize || self.defaultConfig.descriptionSize);
-            }
+
         }
 
         return this;
