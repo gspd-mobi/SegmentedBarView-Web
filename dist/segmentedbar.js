@@ -234,7 +234,8 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
             sideRadius: 50,
             showValue: false,
             value: 144,
-            unit: 'mmol<sup>2</sup>/L',
+            valueSegment: null,
+            unit: '',
             segmentHeight: 80,
             valueHeight: 100,
             bubbleColor: "#7492E2",
@@ -368,11 +369,8 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
                     SegmentedBar.Svg.setAttributes(node, attributes);
                     x += node.width;
                 });
-                //     renderLabelInRectCenter(label, bubble.x, bubble.y, 200, height - 15);
             }
             else {
-                // var bubble = SegmentedBar.Svg.drawRect(self.paper, x - 100, y ,200, height - 15, 15,self.config.bubbleColor);
-                //   renderLabelInRectCenter(label, x - 100, y, 200, height - 15);
             }
             self.bubbleRendereded = true;
         }
@@ -384,8 +382,6 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
                 labelX = x + (width - bbox.width) / 2,
                 labelY = y + (height + bbox.height) / 2 - fontSize / 3;
 
-            console.log('BBox :' + bbox.width + ' ' + bbox.height);
-            console.log(labelX + ' ' + labelY);
             SegmentedBar.Svg.setAttributes(labelNode, {
                 x: labelX,
                 y: labelY
@@ -397,10 +393,10 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
                 return segment.descriptionText;
             }
             if (segment.position == 'first') {
-                return '<' + segment.minValue;
+                return '<' + segment.maxValue;
             }
             if (segment.position == "last") {
-                return '>' + segment.maxValue;
+                return '>' + segment.minValue;
             }
             return segment.minValue + '-' + segment.maxValue;
         }
@@ -456,6 +452,9 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
 
             var value = self.config.value;
             if (value && self.config.showValue && !self.bubbleRendereded) {
+                if (self.config.valueSegment && self.config.valueSegment === segment.index) {
+                    renderBubble(segment.x + segment.length / 2, y, true);
+                }
                 if (segment.minValue < value && segment.maxValue > value) {
                     renderBubble(findBubbleX(segment), segment.y, true);
                 } else if ((segment.minValue === value && segment.includeLeft) || (segment.maxValue === value && segment.includeRight)) {
@@ -495,6 +494,7 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
                 segment.length = segmentLength;
                 segment.sideStyle = self.config.sideStyle;
                 segment.height = self.config.segmentHeight;
+                segment.index = i;
 
                 if (segmentsCount == 1) {
                     segment.position = "single";
@@ -547,7 +547,6 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
             if (!self.config.showValue || self.config.segments.length === 0 || !self.config.value) {
                 self.config.valueHeight = 0;
             }
-            console.log(self.config);
             setViewBox();
         }
 
