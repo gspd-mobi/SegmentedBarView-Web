@@ -18,7 +18,7 @@
             sideRadius: 50,
             showValue: false,
             value: 144,
-            unit: [],
+            unit: 'mmol<sup>2</sup>/L',
             segmentHeight: 80,
             valueHeight: 100,
             bubbleColor: "#7492E2",
@@ -33,7 +33,7 @@
         createBar();
 
         this.resizeListener = window.addEventListener('resize', function () {
-            //TODO:
+            self.bubbleRendereded = false;
             update();
         });
 
@@ -62,6 +62,67 @@
             renderLabelInRectCenter(label, 0, 0, self.config.viewBoxWidth, self.config.segmentHeight);
         }
 
+        function parseUnitHtml(html) {
+            var root = document.createElement('div');
+            root.innerHTML = html;
+            var nodes = root.childNodes;
+
+            var units = [];
+            for (var i = 0; i < nodes.length; i++) {
+                units.push({
+                    text: nodes[i].textContent,
+                    superscript: nodes[i].tagName == 'SUP'
+                });
+            }
+            return units;
+        }
+
+        function prerenderBubbleText(x, y) {
+            var textArr = [self.config.value + (self.config.unit ? '\u00A0' : '')],
+                unitArr = parseUnitHtml(self.config.unit || '');
+
+            unitArr.forEach(function (unit) {
+                textArr.push(unit.text || '');
+            });
+
+            var bbox,
+                textNode,
+                width = 0,
+                height = 0;
+
+            var textNodes = [],
+                label = null;
+
+
+            textArr.forEach(function (text, i) {
+                label = {
+                    text: text,
+                    fontSize: i == 0 ? self.config.textSize : self.config.textSize / 1.5,
+                    fontFamily: self.config.textFont,
+                    color: self.config.descriptionColor
+                };
+                textNode = SegmentedBar.Svg.drawLabel(self.paper, x, y, label);
+                bbox = textNode.getBBox();
+                textNode.width = bbox.width;
+                x += bbox.width;
+                width += bbox.width;
+                if (height < bbox.height) {
+                    height = bbox.height;
+                }
+                if ((i != 0) && unitArr[i - 1].superscript) {
+                    textNode.superscript = true;
+                }
+
+                textNodes.push(textNode);
+            });
+
+            return {
+                width: width,
+                height: height,
+                textNodes: textNodes
+            }
+        }
+
         function renderBubble(x, y, segmentFounded) {
             var height = self.config.valueHeight,
                 label = {
@@ -72,12 +133,30 @@
 
                 };
 
+            var bubbleText = prerenderBubbleText(x, y),
+                bubbleWidth = bubbleText.width * 1.5;
+
             if (segmentFounded) {
-                var bubble = SegmentedBar.Svg.drawBubble(self.paper, x, y, 200, height, 15, self.config.bubbleColor, self.config.viewBoxWidth);
-                renderLabelInRectCenter(label, bubble.x, bubble.y, 200, height - 15);
-            } else {
-                var bubble = SegmentedBar.Svg.drawRect(self.paper, x - 100, y ,200, height - 15, 15,self.config.bubbleColor);
-                renderLabelInRectCenter(label, x - 100, y, 200, height - 15);
+                var bubble = SegmentedBar.Svg.drawBubble(self.paper, x, y, bubbleWidth, height, 15,
+                    self.config.bubbleColor, self.config.viewBoxWidth, bubbleText.textNodes[0]),
+                    attributes = null;
+
+                x -= bubbleText.width / 2;
+                y = (height - 15) / 2 + bubbleText.height / 2 - self.config.textSize / 3;
+
+                bubbleText.textNodes.forEach(function (node) {
+                    attributes = {
+                        x: x,
+                        y: node.superscript ? y - self.config.textSize / 2.5 : y
+                    };
+                    SegmentedBar.Svg.setAttributes(node, attributes);
+                    x += node.width;
+                });
+                //     renderLabelInRectCenter(label, bubble.x, bubble.y, 200, height - 15);
+            }
+            else {
+                // var bubble = SegmentedBar.Svg.drawRect(self.paper, x - 100, y ,200, height - 15, 15,self.config.bubbleColor);
+                //   renderLabelInRectCenter(label, x - 100, y, 200, height - 15);
             }
             self.bubbleRendereded = true;
         }
@@ -85,7 +164,7 @@
         function renderLabelInRectCenter(label, x, y, width, height) {
             var labelNode = SegmentedBar.Svg.drawLabel(self.paper, x, y, label);
             var bbox = labelNode.getBBox(),
-                fontSize = parseInt(window.getComputedStyle(labelNode)["fontSize"]),
+                fontSize = self.config.textSize,
                 labelX = x + (width - bbox.width) / 2,
                 labelY = y + (height + bbox.height) / 2 - fontSize / 3;
 

@@ -20,7 +20,7 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
             y: y,
             text: label.text,
             fill: label.color,
-            style: 'font-size:' + label.fontSize  + 'px' + ';font-family: ' + label.fontFamily + ';'
+            style: 'font-size:' + label.fontSize + 'px' + ';font-family: ' + label.fontFamily + ';'
         };
         return createElement('text', attributes, paper);
     }
@@ -57,7 +57,7 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
     }
 
     //TODO: refactor this method, replace zero with topY
-    function drawBubble(paper, x, y, width, height, r, color, maxX) {
+    function drawBubble(paper, x, y, width, height, r, color, maxX, beforeNode) {
         var x1 = x - width / 2,
             triangleSize = 15,
             y1 = y - triangleSize;
@@ -79,9 +79,9 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
             fill: color
         };
         return {
-            elem : createElement('path', attributes, paper),
-            x : x1,
-            y : 0
+            elem: createElement('path', attributes, paper, beforeNode),
+            x: x1,
+            y: 0
         }
     }
 
@@ -146,8 +146,7 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
         return createElement('path', attributes, paper)
     }
 
-    //TODO: add insertBefore parameter
-    function createElement(elemName, attributes, parent) {
+    function createElement(elemName, attributes, parent, beforeNode) {
         var node = document.createElementNS(SegmentedBar.namespaces.svg, elemName);
         if (elemName === 'svg') {
             setAttributes(node, {'xmlns:segview': SegmentedBar.namespaces.segview})
@@ -159,9 +158,12 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
         if (attributes) {
             setAttributes(node, attributes);
         }
-        //TODO: check parent
         if (parent) {
-            parent.appendChild(node);
+            if (beforeNode) {
+                parent.insertBefore(node, beforeNode);
+            } else {
+                parent.appendChild(node);
+            }
         }
         return node;
     }
@@ -182,7 +184,7 @@ SegmentedBar.Svg = (function (window, document, SegmentedBar) {
         drawAngleLeftRect: drawAngleLeftRect,
         drawAngleRightRect: drawAngleRightRect,
         drawHexagon: drawHexagon,
-        drawBubble : drawBubble
+        drawBubble: drawBubble
     }
 
 })(window, document, SegmentedBar);
