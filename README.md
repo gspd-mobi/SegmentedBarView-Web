@@ -1,6 +1,6 @@
 # SegmentedBar.js
 
-Simple javascript library for creating beatiful, responsive, mobile friendly SVG segment bars.
+Simple javascript library for creating beatiful, responsive, mobile friendly SVG segmented bars.
 ![Imgur](https://i.imgur.com/1a3oXi5.png)
 
 Live demo [here](http://gspd.mobi/segmentedbar)
