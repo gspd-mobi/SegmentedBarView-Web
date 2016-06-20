@@ -1,0 +1,22 @@
+{
+  "name": "segmentedbar",
+  "version": "0.1.0",
+  "description": "Javascript library which is showing data as a segments and a value inside them.",
+  "main": "segmentedbar.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gspd-mobi/SegmentedBarView-Web.git"
+  },
+  "keywords": [
+    "segments"
+  ],
+  "author": "tagir.tahtarov@gspd.mobi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gspd-mobi/SegmentedBarView-Web/issues"
+  },
+  "homepage": "https://github.com/gspd-mobi/SegmentedBarView-Web#readme"
+}
